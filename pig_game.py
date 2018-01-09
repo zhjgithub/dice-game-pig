@@ -14,7 +14,13 @@ goal = 50
 # pending: an int, the number of points accumulated on current turn, not yet scored
 
 
-def play_pig(A, B):
+def die_rolls():
+    "Generate die rolls"
+    while True:
+        yield random.randint(1, 6)
+
+
+def play_pig(A, B, dierolls=die_rolls()):
     """Play a game of pig between two players, represented by their strategies.
     Each time through the main loop we ask the current player for one decision,
     which must be 'hold' or 'roll', and we update the state accordingly.
@@ -31,7 +37,7 @@ def play_pig(A, B):
             return strategies[other[p]]
 
         if strategies[p](state) == 'roll':
-            state = roll(state, random.randint(1, 6))
+            state = roll(state, next(dierolls))
         else:
             state = hold(state)
 
