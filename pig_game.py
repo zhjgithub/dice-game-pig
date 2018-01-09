@@ -5,6 +5,7 @@ Dice game - Pig.
 from collections import namedtuple
 
 other = [1, 0]
+goal = 50
 State = namedtuple('State', 'p me you pending')
 
 # States are represented as a tuple of (p, me, you, pending) where
@@ -24,7 +25,20 @@ def roll(state, d):
     """Apply the roll action to a state (and a die roll d) to yield a new state:
     If d is 1, get 1 point (losing any accumulated 'pending' points),
     and it is the other player's turn. If d > 1, add d to 'pending' points."""
-    return (other[state.p], state.you, state.me + d, 0) if d == 1 else (state.p, state.me, state.you, state.pending + d)
+    return (other[state.p], state.you, state.me + d,
+            0) if d == 1 else (state.p, state.me, state.you, state.pending + d)
+
+
+def hold_at(x):
+    """Return a strategy that holds if and only if
+    pending >= x or player reaches goal."""
+
+    def strategy(state):
+        s = State(*state)
+        return 'hold' if s.pending >= x or s.me + s.pending >= goal else 'roll'
+
+    strategy.__name__ = 'hold_at(%d)' % x
+    return strategy
 
 
 def test():
@@ -33,6 +47,12 @@ def test():
     assert hold(State(0, 5, 15, 10)) == State(1, 15, 15, 0)
     assert roll(State(1, 10, 20, 7), 1) == State(0, 20, 11, 0)
     assert roll(State(0, 5, 15, 10), 5) == State(0, 5, 15, 15)
+
+    assert hold_at(30)((1, 29, 15, 20)) == 'roll'
+    assert hold_at(30)((1, 29, 15, 21)) == 'hold'
+    assert hold_at(15)((0, 2, 30, 10)) == 'roll'
+    assert hold_at(15)((0, 2, 30, 15)) == 'hold'
+
     print('tests pass')
 
 
