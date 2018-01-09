@@ -37,10 +37,14 @@ def play_pig(A, B, dierolls=die_rolls()):
         if you >= goal:
             return strategies[other[p]]
 
-        if strategies[p](state) == 'roll':
+        action = strategies[p](state)
+        if action == 'roll':
             state = roll(state, next(dierolls))
-        else:
+        elif action == 'hold':
             state = hold(state)
+        else:
+            # illegal action, lose!
+            return strategies[other[p]]
 
 
 def hold(state):
