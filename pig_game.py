@@ -116,6 +116,23 @@ def best_action(state, actions, Q, U):
     return max(actions(state), key=EU)
 
 
+@memo
+def win_diff(state):
+    "The utility of a state: here the winning differential (pos or neg)."
+    (p, me, you, pending) = state
+    if me + pending >= goal or you >= goal:
+        return (me + pending - you)
+    else:
+        return max(
+            Q_pig(state, action, win_diff) for action in pig_actions(state))
+
+
+def max_diffs(state):
+    """A strategy that maximizes the expected difference between my final score
+    and my opponent's."""
+    return best_action(state, pig_actions, Q_pig, win_diff)
+
+
 def test():
     "tests."
     assert hold((1, 10, 20, 7)) == (0, 20, 17, 0)
@@ -179,6 +196,23 @@ def test_max_wins():
     assert (max_wins((0, 22, 4, 7))) == "roll"
     assert (max_wins((1, 28, 3, 2))) == "roll"
     assert (max_wins((0, 11, 0, 24))) == "roll"
+
+    # The first three test cases are examples where max_wins and
+    # max_diffs return the same action.
+    assert (max_diffs((1, 26, 21, 15))) == "hold"
+    assert (max_diffs((1, 23, 36, 7))) == "roll"
+    assert (max_diffs((0, 29, 4, 3))) == "roll"
+    # The remaining test cases are examples where max_wins and
+    # max_diffs return different actions.
+    assert (max_diffs((0, 36, 32, 5))) == "roll"
+    assert (max_diffs((1, 37, 16, 3))) == "roll"
+    assert (max_diffs((1, 33, 39, 7))) == "roll"
+    assert (max_diffs((0, 7, 9, 18))) == "hold"
+    assert (max_diffs((1, 0, 35, 35))) == "hold"
+    assert (max_diffs((0, 36, 7, 4))) == "roll"
+    assert (max_diffs((1, 5, 12, 21))) == "hold"
+    assert (max_diffs((0, 3, 13, 27))) == "hold"
+    assert (max_diffs((0, 0, 39, 37))) == "hold"
 
     print('max win tests success')
 
