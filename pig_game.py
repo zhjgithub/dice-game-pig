@@ -96,6 +96,15 @@ def test_pig_game():
     for _ in range(10):
         winner = play_pig(always_hold, always_roll)
         assert winner.__name__ == 'always_roll'
+
+    def clueless(state):
+        "A strategy that ignores the state and chooses at random from possible moves."
+        return random.choice(['roll', 'hold'])
+
+    A, B = hold_at(50), clueless
+    rolls = iter([6] * 9)
+    assert play_pig(A, B, rolls) == A
+
     print('pig game tests pass')
 
 
