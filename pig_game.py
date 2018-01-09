@@ -2,7 +2,7 @@
 Dice game - Pig.
 '''
 
-from collections import namedtuple
+import random
 
 other = [1, 0]
 goal = 50
@@ -12,6 +12,28 @@ goal = 50
 # me:      an int, the player-to-move's current score
 # you:     an int, the other player's current score.
 # pending: an int, the number of points accumulated on current turn, not yet scored
+
+
+def play_pig(A, B):
+    """Play a game of pig between two players, represented by their strategies.
+    Each time through the main loop we ask the current player for one decision,
+    which must be 'hold' or 'roll', and we update the state accordingly.
+    When one player's score exceeds the goal, return that player."""
+    strategies = [A, B]
+    state = (0, 0, 0, 0)
+
+    while True:
+        p, me, you, _ = state
+
+        if me >= goal:
+            return strategies[p]
+        if you >= goal:
+            return strategies[other[p]]
+
+        if strategies[p](state) == 'roll':
+            state = roll(state, random.randint(1, 6))
+        else:
+            state = hold(state)
 
 
 def hold(state):
@@ -56,5 +78,21 @@ def test():
     print('tests pass')
 
 
+def test_pig_game():
+    "Pig game tests."
+
+    def always_roll(state):
+        return 'roll'
+
+    def always_hold(state):
+        return 'hold'
+
+    for _ in range(10):
+        winner = play_pig(always_hold, always_roll)
+        assert winner.__name__ == 'always_roll'
+    print('pig game tests pass')
+
+
 if __name__ == '__main__':
     test()
+    test_pig_game()
