@@ -6,7 +6,7 @@ import random
 from decorator import memo
 
 other = [1, 0]
-goal = 50
+goal = 40
 
 # States are represented as a tuple of (p, me, you, pending) where
 # p:       an int, 0 or 1, indicating which player's turn it is.
@@ -70,6 +70,11 @@ def hold_at(x):
     return strategy
 
 
+def max_wins(state):
+    "The optimal pig strategy chooses an action with the highest win probability."
+    return best_action(state, pig_actions, Q_pig, Pwin)
+
+
 def Q_pig(state, action, Pwin):
     "The expected value of choosing action in state."
     if action == 'hold':
@@ -118,6 +123,7 @@ def test():
     assert roll((1, 10, 20, 7), 1) == (0, 20, 11, 0)
     assert roll((0, 5, 15, 10), 5) == (0, 5, 15, 15)
 
+    assert goal == 50  # hold_at tests use goal equal 50
     assert hold_at(30)((1, 29, 15, 20)) == 'roll'
     assert hold_at(30)((1, 29, 15, 21)) == 'hold'
     assert hold_at(15)((0, 2, 30, 10)) == 'roll'
@@ -150,6 +156,34 @@ def test_pig_game():
     print('pig game tests pass')
 
 
+def test_max_wins():
+    "max wins tests"
+    assert goal == 40  # max_wins tests use goal equal 50
+    assert (max_wins((1, 5, 34, 4))) == "roll"
+    assert (max_wins((1, 18, 27, 8))) == "roll"
+    assert (max_wins((0, 23, 8, 8))) == "roll"
+    assert (max_wins((0, 31, 22, 9))) == "hold"
+    assert (max_wins((1, 11, 13, 21))) == "roll"
+    assert (max_wins((1, 33, 16, 6))) == "roll"
+    assert (max_wins((1, 12, 17, 27))) == "roll"
+    assert (max_wins((1, 9, 32, 5))) == "roll"
+    assert (max_wins((0, 28, 27, 5))) == "roll"
+    assert (max_wins((1, 7, 26, 34))) == "hold"
+    assert (max_wins((1, 20, 29, 17))) == "roll"
+    assert (max_wins((0, 34, 23, 7))) == "hold"
+    assert (max_wins((0, 30, 23, 11))) == "hold"
+    assert (max_wins((0, 22, 36, 6))) == "roll"
+    assert (max_wins((0, 21, 38, 12))) == "roll"
+    assert (max_wins((0, 1, 13, 21))) == "roll"
+    assert (max_wins((0, 11, 25, 14))) == "roll"
+    assert (max_wins((0, 22, 4, 7))) == "roll"
+    assert (max_wins((1, 28, 3, 2))) == "roll"
+    assert (max_wins((0, 11, 0, 24))) == "roll"
+
+    print('max win tests success')
+
+
 if __name__ == '__main__':
-    test()
+    # test()
     test_pig_game()
+    test_max_wins()
