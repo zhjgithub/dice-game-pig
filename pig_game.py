@@ -3,6 +3,7 @@ Dice game - Pig.
 '''
 
 import random
+from decorator import memo
 
 other = [1, 0]
 goal = 50
@@ -67,6 +68,47 @@ def hold_at(x):
 
     strategy.__name__ = 'hold_at(%d)' % x
     return strategy
+
+
+def Q_pig(state, action, Pwin):
+    "The expected value of choosing action in state."
+    if action == 'hold':
+        return 1 - Pwin(hold(state))
+    if action == 'roll':
+        return (1 - Pwin(roll(state, 1)) + sum(
+            Pwin(roll(state, d)) for d in (2, 3, 4, 5, 6))) / 6
+    raise ValueError
+
+
+def pig_actions(state):
+    "The legal actions from a state."
+    _, _, _, pending = state
+    return ['roll', 'hold'] if pending else ['roll']
+
+
+@memo
+def Pwin(state):
+    '''
+    The utility of a state; here just the probability that an optimal player
+    whose turn it is to move can win from the current state.
+    '''
+    # Assumes opponent also plays with optimal strategy.
+    p, me, you, pending = state
+    if me + pending >= goal:
+        return 1
+    if you >= goal:
+        return 0
+    return max(Q_pig(state, action, Pwin) for action in pig_actions(state))
+
+
+def best_action(state, actions, Q, U):
+    "Return the optimal action for a state, given U."
+
+    def EU(action):
+        "Expected utility."
+        return Q(state, action, U)
+
+    return max(actions(state), key=EU)
 
 
 def test():
