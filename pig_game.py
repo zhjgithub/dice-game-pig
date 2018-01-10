@@ -110,6 +110,30 @@ def Pwin(state):
     return max(Q_pig(state, action, Pwin) for action in pig_actions(state))
 
 
+def Pwin2(state):
+    """The utility of a state; here just the probability that an optimal player
+   whose turn it is to move can win from the current state."""
+    _, me, you, pending = state
+    return Pwin3(me, you, pending)
+
+
+@memo
+def Pwin3(me, you, pending):
+    '''
+    The probability of winning for player to play with score me to you, and pending.
+    '''
+    if me + pending >= goal:
+        return 1
+    if you >= goal:
+        return 0
+    p_roll = (1 - Pwin3(you, me + 1, 0) + sum(
+        Pwin3(me, you, pending + d) for d in (2, 3, 4, 5, 6))) / 6
+    if pending:
+        return max(p_roll, 1 - Pwin3(you, me + pending, 0))
+    else:
+        return p_roll
+
+
 def best_action(state, actions, Q, U):
     "Return the optimal action for a state, given U."
 
@@ -217,6 +241,14 @@ def test_max_wins():
     assert (max_diffs((1, 5, 12, 21))) == "hold"
     assert (max_diffs((0, 3, 13, 27))) == "hold"
     assert (max_diffs((0, 0, 39, 37))) == "hold"
+
+    epsilon = 0.0001  # used to make sure that floating point errors don't cause test() to fail
+    assert len(Pwin3.cache) <= 50000
+    assert Pwin2((0, 42, 25, 0)) == 1
+    assert Pwin2((1, 12, 43, 0)) == 0
+    assert Pwin2((0, 34, 42, 1)) == 0
+    assert abs(Pwin2((0, 25, 32, 8)) - 0.736357188272) <= epsilon
+    assert abs(Pwin2((0, 19, 35, 4)) - 0.493173612834) <= epsilon
 
     print('max win tests success')
 
